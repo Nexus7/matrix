@@ -1,0 +1,103 @@
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=VT323' rel='stylesheet' type='text/css'>
+
+    <style>
+        body {
+            background-color: black;
+        }
+
+        p {
+            font-family: 'VT323';
+            font-size : 12px;
+            color: green;
+        }
+    </style>
+
+</head>
+<body>
+    <p class="matrix"></p>
+</body>
+
+<script type="text/javascript">
+
+    xDist = 12;
+    yDist = 12;
+    colourPhases = 40;
+    maxRainThreads = 300;
+    rainSpeed = 50;
+    windowWidth = 0;
+    dropMatrix = [];
+
+    function addRain() {
+        newX = Math.floor((Math.random() * windowWidth + 1));
+        newY = Math.floor((Math.random() * 800 + 1));
+
+        dropMatrix.push({
+            x: newX,
+            y: newY,
+            i: 0,
+            d: [{x: newX, y: newY}]
+        });
+    }
+
+    function removeOldestParent(rain) {
+        oldest = rain.d[0];
+        $("#drop-" + oldest.x + "-" + oldest.y).remove();
+        rain.d.shift();
+    }
+
+    function addNewDrop(rain) {
+        oldest = rain.d[rain.d.length-1];
+
+        newXPos = oldest.x;
+        newYPos = oldest.y + yDist;
+
+        //randomLetter = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0,1);
+        randomLetter = String.fromCharCode(Math.floor((Math.random() * 1000)+65393));
+
+        rain.i++;
+        rain.d.push(
+            {
+                x: newXPos,
+                y: newYPos
+            }
+        );
+
+        newPosString = newXPos.toString() + "-" + newYPos.toString();
+
+        $(".matrix").append("<p id='drop-" + newPosString + "'>" + randomLetter + "</p>");
+
+        $('#drop-' + newPosString).css('color',() => {
+            return (rain.i === colourPhases ? 'rgb(255,255,255)' : 'rgb(0,' + Math.floor(255 * (rain.i)/colourPhases) + ',0)');
+        });
+
+        $('#drop-' + newPosString).css({
+            position : 'absolute',
+            top : newYPos,
+            left : newXPos
+        });
+
+    }
+
+    function nextDrop() {
+        dropMatrix.forEach((rain, idx) => {
+            if (rain.i === colourPhases) {
+                rain.d.length === 0 ? dropMatrix.splice(idx, 1) : removeOldestParent(rain);
+            } else {
+                addNewDrop(rain);
+            }
+        });
+    }
+
+    $(document).ready(() => {
+        windowWidth = $( window ).width();
+        setInterval(() => {
+            if (dropMatrix.length < maxRainThreads) {
+                addRain();
+            }
+            nextDrop();
+        }, rainSpeed);
+    });
+
+</script>
